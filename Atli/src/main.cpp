@@ -10,6 +10,7 @@ int main(int argc, char ** argv) {
     if(argc < 4) {
         std::cout << "Usage:" << std::endl;
         std::cout << "./main IP LOWPORT HIGHPORT" << std::endl;
+        return 0;
     }
 
     int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
@@ -48,5 +49,8 @@ int main(int argc, char ** argv) {
             int res = sendto(sockfd, message.c_str(), message.length(), 0, (struct sockaddr*)&dest_address, sizeof(dest_address));
         }
     }
+
+    //TODO recvfrom() in a loop
+
     return 0;
 }
