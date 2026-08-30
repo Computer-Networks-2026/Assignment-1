@@ -1,3 +1,4 @@
+#include <cerrno>
 #include <iostream>
 
 #include <stdio.h>
@@ -38,19 +39,56 @@ int main(int argc, char ** argv) {
         return 0;
     }
 
-    int startport = 4000;
-    int endport = 4000;
+    int start_port = atoi(argv[2]);
+    int end_port = atoi(argv[3]);
+
+    if( end_port < start_port) {
+        std::cout << "Enter the start port first." << std::endl;
+        return 0;
+    }
+
+    int total_ports = (end_port - start_port) + 1;
+
+    bool* responses = new bool[total_ports];
 
     std::string message = "Hello\n";
 
-    for( int p = startport; p <= endport; ++p) {
+    for( int p = start_port; p <= end_port; ++p) {
         dest_address.sin_port = htons(p);
+        responses[p - start_port] = false;
         for( int i = 0; i < 5; ++i) {
-            int res = sendto(sockfd, message.c_str(), message.length(), 0, (struct sockaddr*)&dest_address, sizeof(dest_address));
+            if(sendto(sockfd, message.c_str(), message.length(), 0, (struct sockaddr*)&dest_address, sizeof(dest_address)) < 0) {
+                perror("Error sending");
+            }
         }
     }
 
-    //TODO recvfrom() in a loop
+    while(true) {
+        char buffer[2048];
+        sockaddr_in receive_address;
+        socklen_t receive_address_size = sizeof(receive_address);
+
+        ssize_t res = recvfrom(sockfd, &buffer, sizeof(buffer), 0, (struct sockaddr*)&receive_address, &receive_address_size);
+
+        if(res < 0) {
+            if(errno == EAGAIN || errno == EWOULDBLOCK) {
+                break;
+            }
+            perror("Error receiving");
+            break;
+        }
+
+        int received_port = ntohs(receive_address.sin_port);
+        responses[received_port - start_port] = true;
+    }
+
+    for( int i = 0; i < total_ports; ++i) {
+        if(responses[i]) {
+            std::cout << "Received response on port " << (start_port + i) << std::endl;
+        }
+    }
+
+    delete[] responses;
 
     return 0;
 }
