@@ -54,6 +54,8 @@ Enhanced Trust)! Here's how to access the secret port I'm safeguarding:
 #include <cerrno>
 #include <iostream>
 #include <netinet/in.h>
+#include <netinet/ip.h>
+#include <netinet/udp.h>
 #include <vector>
 #include <cstring>
 
@@ -228,6 +230,10 @@ int main(int argc, char ** argv) {
     port = 4013;
     dest_address.sin_port = htons(port);
 
+    int challenge_IP = 0;
+    short challenge_checksum = 0;
+    short challenge_checksum_n = 0;
+
     std::vector<unsigned char> message4013;
     message4013.resize(4);
 
@@ -268,13 +274,11 @@ int main(int argc, char ** argv) {
             std::string response(buffer, res-6);
             std::cout << response << std::endl;
 
-            short challenge_checksum = 0;
-            memcpy(&challenge_checksum, buffer + res - 6, sizeof(challenge_checksum));
-            challenge_checksum = ntohs(challenge_checksum);
+            memcpy(&challenge_checksum_n, buffer + res - 6, sizeof(challenge_checksum_n));
+            challenge_checksum = ntohs(challenge_checksum_n);
 
             //std::cout << "Checksum: " << std::hex << challenge_checksum << std::dec << std::endl;
 
-            int challenge_IP = 0;
             memcpy(&challenge_IP, buffer + res - 4, sizeof(challenge_IP));
             /*
             char IPstr[INET_ADDRSTRLEN];
@@ -298,6 +302,28 @@ int main(int argc, char ** argv) {
     }
 
     // TODO - construct packet for challenge response
+    std::vector<unsigned char> payload;
+    payload.resize(30);
+
+    struct iphdr ip_header{};
+    struct udphdr udp_header{};
+
+    ip_header.version = 4;
+    ip_header.ihl = 5;
+    ip_header.tos = 0;
+    ip_header.tot_len = htons(20 + sizeof(udphdr) + 2);
+    ip_header.id = htons(0);
+    ip_header.frag_off = htons(0);
+    ip_header.ttl = 64;
+    ip_header.protocol = IPPROTO_UDP;
+    ip_header.check = 0;
+    ip_header.saddr = challenge_IP;
+    ip_header.daddr = dest_address.sin_addr.s_addr;
+
+    udp_header.uh_sport = htons(1337);
+    udp_header.uh_dport = htons(port);
+    udp_header.uh_ulen = htons(sizeof(udphdr) + 2);
+    udp_header.uh_sum = htons(0);
 
     return 0;
 }
