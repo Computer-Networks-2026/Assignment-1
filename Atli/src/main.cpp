@@ -47,7 +47,7 @@ int main(int argc, char ** argv) {
     int start_port = atoi(argv[2]);
     int end_port = atoi(argv[3]);
 
-    if( start_port < 0 || end_port < 0 || start_port > 65535 || end_port > 65535) {
+    if( start_port < 1 || end_port < 1 || start_port > 65535 || end_port > 65535) {
         std::cout << "Port out of range" << std::endl;
         return 0;
     }
