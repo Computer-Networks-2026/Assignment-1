@@ -60,12 +60,15 @@ int main(int argc, char ** argv) {
     int total_ports = (end_port - start_port) + 1;
     bool* responses = new bool[total_ports];
 
+    for(int i = 0; i < total_ports; ++i) {
+        responses[i] = false;
+    }
+
     std::string message = "Hello\n";
 
-    for( int p = start_port; p <= end_port; ++p) {
-        dest_address.sin_port = htons(p);
-        responses[p - start_port] = false;
-        for( int i = 0; i < 5; ++i) {
+    for( int i = 0; i < 5; ++i) {
+        for( int p = start_port; p <= end_port; ++p) {
+            dest_address.sin_port = htons(p);
             if(sendto(sockfd, message.c_str(), message.length(), 0, (struct sockaddr*)&dest_address, sizeof(dest_address)) < 0) {
                 perror("Error sending");
                 return 1;
