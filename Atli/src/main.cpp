@@ -12,7 +12,7 @@
 int main(int argc, char ** argv) {
     if(argc < 4) {
         std::cout << "Usage:" << std::endl;
-        std::cout << "./main IP LOWPORT HIGHPORT" << std::endl;
+        std::cout << argv[0] << " IP LOWPORT HIGHPORT" << std::endl;
         return 0;
     }
 

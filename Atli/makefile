@@ -3,7 +3,7 @@ CXXFLAGS    := -Wall -Wextra -pedantic -std=c++17 -Iinclude -g \
 			   -fcolor-diagnostics
 LDFLAGS     := 
 
-MAIN_TARGET := build/main
+MAIN_TARGET := build/scanner
 CLIENT_TARGET := build/client
 
 .PHONY: all clean run run-client test
