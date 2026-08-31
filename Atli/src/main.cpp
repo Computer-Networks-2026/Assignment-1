@@ -81,10 +81,11 @@ int main(int argc, char ** argv) {
         int received_port = ntohs(receive_address.sin_port);
         responses[received_port - start_port] = true;
 
+        /*
         std::cout << "Response from port " << received_port << ":" << std::endl;
-
         std::string response(buffer, res);
         std::cout << response << std::endl;
+        */
     }
 
     for( int i = 0; i < total_ports; ++i) {
