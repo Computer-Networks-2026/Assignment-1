@@ -1,30 +1,29 @@
-CXX      := clang++
-CXXFLAGS := -Wall -Wextra -pedantic -std=c++17 -Iinclude -g \
-		   -fcolor-diagnostics
-LDFLAGS  := 
-TARGET   := build/main
+CXX         := clang++
+CXXFLAGS    := -Wall -Wextra -pedantic -std=c++17 -Iinclude -g \
+			   -fcolor-diagnostics
+LDFLAGS     := 
 
-SRC      := $(wildcard src/*.cpp)
-OBJ      := $(patsubst src/%.cpp, build/%.o, $(SRC))
+MAIN_TARGET := build/main
+CLIENT_TARGET := build/client
 
-.PHONY: all clean run test
+.PHONY: all clean run run-client test
 
-all: $(TARGET)
+all: $(MAIN_TARGET) $(CLIENT_TARGET)
 
-# Pattern rule: src/foo.c -> build/foo.o
-build/%.o: src/%.cpp | build
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+$(MAIN_TARGET): src/main.cpp | build
+	$(CXX) $(CXXFLAGS) $< $(LDFLAGS) -o $@
 
-# Final linking
-$(TARGET): $(OBJ)
-	$(CXX) $(OBJ) $(LDFLAGS) -o $@
+$(CLIENT_TARGET): src/client.cpp | build
+	$(CXX) $(CXXFLAGS) $< $(LDFLAGS) -o $@
 
-# Create build directory if it is missing
 build:
 	@mkdir -p build
 
-run: $(TARGET)
-	@./$(TARGET)
+run: $(MAIN_TARGET)
+	@./$(MAIN_TARGET) 130.208.246.98 4000 4100
+
+run-client: $(CLIENT_TARGET)
+	@./$(CLIENT_TARGET) 130.208.246.98
 
 clean:
 	$(RM) -r build
