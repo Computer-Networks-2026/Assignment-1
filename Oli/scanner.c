@@ -8,12 +8,12 @@
 #include <sys/time.h>
 #include <errno.h>
 
-#define MAX_RETRIES 3
+#define MAX_RETRIES 5   //max retries 
 #define LISTEN_TIMEOUT_MS 500 // 500ms listen window per burst
 
 int main(int argc, char *argv[]) {
     if (argc != 4) {
-        fprintf(stderr, "Usage: %s <IP Address> <Low Port> <High Port>\n", argv[0]);
+        fprintf(stderr, "usage: %s <IP Address> <Low Port> <High Port>\n", argv[0]);
         return 1;
     }
 
@@ -22,7 +22,7 @@ int main(int argc, char *argv[]) {
     int high_port = atoi(argv[3]);
 
     if (low_port <= 0 || high_port <= 0 || low_port > high_port) {
-        fprintf(stderr, "Error: Invalid port range.\n");
+        fprintf(stderr, "error: Invalid port range.\n");
         return 1;
     }
 
@@ -35,26 +35,25 @@ int main(int argc, char *argv[]) {
 
     int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
     if (sockfd < 0) {
-        perror("Error creating socket");
+        perror("error creating socket");
         free(open_ports);
         return 1;
     }
 
-    // Set a short socket receive timeout for reading incoming replies
+    // sets a short socket receive timeout for inc replies
     struct timeval tv;
     tv.tv_sec = 0;
-    tv.tv_usec = 100000; // 100ms per recvfrom call
+    tv.tv_usec = 100000; // 100ms per
     setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
 
-    printf("Scanning %s across ports %d-%d...\n", ipaddr, low_port, high_port);
+    printf("scanning %s across ports %d-%d...\n", ipaddr, low_port, high_port);
 
     const char *msg = "PING";
 
     for (int attempt = 0; attempt < MAX_RETRIES; attempt++) {
-        // 1. BURST: Send probe packets to all unresolved ports
         for (int port = low_port; port <= high_port; port++) {
             int idx = port - low_port;
-            if (open_ports[idx]) continue; // Skip already discovered ports
+            if (open_ports[idx]) continue; // skip  discovered ports
 
             struct sockaddr_in destaddr;
             memset(&destaddr, 0, sizeof(destaddr));
@@ -66,8 +65,8 @@ int main(int argc, char *argv[]) {
                    (struct sockaddr *)&destaddr, sizeof(destaddr));
         }
 
-        // 2. COLLECT: Listen for responses across the entire socket
-        // Check for incoming packets until the listening window expires
+        //listen for responses across the entire socket
+        // check for incoming packets til listening window expires
         struct timeval start, now;
         gettimeofday(&start, NULL);
 
@@ -94,14 +93,12 @@ int main(int argc, char *argv[]) {
                     }
                 }
             } else if (bytes < 0 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
-                // Timeout on this single recvfrom, continue check loop
                 continue;
             }
         }
     }
 
-    // Print summary
-    printf("\n--- Scan Complete ---\n");
+    printf("scan complete\n");
 
     free(open_ports);
     close(sockfd);
